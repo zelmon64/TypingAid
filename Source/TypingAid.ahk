@@ -597,13 +597,13 @@ DisableKeyboardHotKeys()
 
 #MaxThreadsPerHotkey 1 
     
-; changed to Numpad numbers for 1 to 6
-Numpad1::
-Numpad2::
-Numpad3::
-Numpad4::
-Numpad5::
-Numpad6::
+; changed to AHK numbers for 1 to 6
+1::
+2::
+3::
+4::
+5::
+6::
 $7:: 
 $8:: 
 $9:: 
@@ -721,7 +721,8 @@ CheckWord(Key)
 
    IfEqual, prefs_NumPresses, 2
    {
-      Input, KeyAgain, L1 I T0.5, 1234567890
+      ; Removed 'I'
+	  Input, KeyAgain, L1 T0.5, 1234567890
       
       ; If there is a timeout, abort replacement, send key and return
       IfEqual, ErrorLevel, Timeout
