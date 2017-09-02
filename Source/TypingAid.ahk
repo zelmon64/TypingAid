@@ -138,7 +138,7 @@ MainLoop()
       }
    
       ;Get one key at a time 
-      Input, InputChar, L1 V I, {BS}%g_TerminatingEndKeys%
+      Input, InputChar, L1 V, {BS}%g_TerminatingEndKeys% ; removed `I` so that other AHK scripts can act as the keyboard
    
       Critical
       EndKey := ErrorLevel
@@ -597,12 +597,13 @@ DisableKeyboardHotKeys()
 
 #MaxThreadsPerHotkey 1 
     
-$1:: 
-$2:: 
-$3:: 
-$4:: 
-$5:: 
-$6:: 
+; changed to Numpad numbers for 1 to 6
+Numpad1::
+Numpad2::
+Numpad3::
+Numpad4::
+Numpad5::
+Numpad6::
 $7:: 
 $8:: 
 $9:: 
