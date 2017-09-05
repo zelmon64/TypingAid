@@ -1,3 +1,4 @@
-﻿autohotkey
+﻿AutoHotkey
 OptiKey
 PSMoveService
+TypingAid
