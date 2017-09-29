@@ -1,9 +1,9 @@
 ;  TypingAid
 ;  http://www.autohotkey.com/board/topic/49517-ahk-11typingaid-v2200-word-autocompletion-utility/
 ;
-;  Press 1 to 0 keys to autocomplete the word upon suggestion 
+;  Press 1 to 0 keys to autocomplete the word upon suggestion
 ;  Or use the Up/Down keys to select an item
-;  (0 will match suggestion 10) 
+;  (0 will match suggestion 10)
 ;                              Credits:
 ;                                -Maniac
 ;                                -Jordi S
@@ -12,16 +12,16 @@
 ;                                -Asaptrad
 ;                                -j4hangir
 ;                                -Theclaw
-;___________________________________________ 
-
-; Press 1 to 0 keys to autocomplete the word upon suggestion 
 ;___________________________________________
 
-;    CONFIGURATIONS 
+; Press 1 to 0 keys to autocomplete the word upon suggestion
+;___________________________________________
+
+;    CONFIGURATIONS
 
 #NoTrayIcon
 ;disable hotkeys until setup is complete
-Suspend, On 
+Suspend, On
 #NoEnv
 ListLines Off
 
@@ -34,7 +34,7 @@ CoordMode, Mouse, Screen
 EvaluateScriptPathAndTitle()
 
 SuspendOn()
-BuildTrayMenu()      
+BuildTrayMenu()
 
 OnExit, SaveScript
 
@@ -74,17 +74,17 @@ g_WM_SETCURSOR := 0x20
 
 ;setup code
 g_DpiScalingFactor := A_ScreenDPI/96
-g_Helper_Id = 
-g_HelperManual = 
+g_Helper_Id =
+g_HelperManual =
 g_DelimiterChar := Chr(2)
-g_cursor_hand := DllCall( "LoadImage", "Ptr", g_NULL, "Uint", g_IDC_HAND , "Uint", g_IMAGE_CURSOR, "int", g_NULL, "int", g_NULL, "Uint", g_LR_SHARED ) 
+g_cursor_hand := DllCall( "LoadImage", "Ptr", g_NULL, "Uint", g_IDC_HAND , "Uint", g_IMAGE_CURSOR, "int", g_NULL, "int", g_NULL, "Uint", g_LR_SHARED )
 if (A_PtrSize == 8) {
    g_SetClassLongFunction := "SetClassLongPtr"
 } else {
    g_SetClassLongFunction := "SetClassLong"
 }
 g_PID := DllCall("GetCurrentProcessId")
-AutoTrim, Off 
+AutoTrim, Off
 
 InitializeListBox()
 
@@ -114,7 +114,7 @@ if !(g_ListBoxScrollCallback)
    MsgBox, Failed to register ListBox Scroll callback function
    ExitApp
 }
-   
+
 ;Find the ID of the window we are using
 GetIncludedActiveWindow()
 
@@ -125,25 +125,28 @@ MainLoop()
 MainLoop()
 {
    global g_TerminatingEndKeys
-   Loop 
-   { 
+   Loop
+   {
 
       ;If the active window has changed, wait for a new one
-      IF !( ReturnWinActive() ) 
+      IF !( ReturnWinActive() )
       {
          Critical, Off
          GetIncludedActiveWindow()
-      } else {    
+      } else {
          Critical, Off
       }
-   
-      ;Get one key at a time 
+
+      ;Get one key at a time
       Input, InputChar, L1 V, {BS}%g_TerminatingEndKeys% ; removed `I` so that other AHK scripts can act as the keyboard
-   
+
       Critical
       EndKey := ErrorLevel
-   
-      ProcessKey(InputChar,EndKey)
+
+      ;ToolTip % "You pressed " A_ThisHotkey " and the InputChar is: " InputChar "."
+      ; Ignore Numpad keys because they are used by another script (Quikwrite_numpad)
+      If !(InStr(A_ThisHotkey, "Numpad") && InputChar >= 0 && InputChar <= 9)
+        ProcessKey(InputChar,EndKey)
    }
 }
 
@@ -161,10 +164,10 @@ ProcessKey(InputChar,EndKey)
    global prefs_EndWordCharacters
    global prefs_ForceNewWordCharacters
    global prefs_Length
-   
+
    IfEqual, g_IgnoreSend, 1
    {
-      g_IgnoreSend = 
+      g_IgnoreSend =
       Return
    }
 
@@ -172,14 +175,14 @@ ProcessKey(InputChar,EndKey)
    {
       EndKey = Max
    }
-   
+
    IfEqual, EndKey, NewInput
       Return
 
    IfEqual, EndKey, Endkey:Tab
       If ( GetKeyState("Alt") =1 || GetKeyState("LWin") =1 || GetKeyState("RWin") =1 )
          Return
-   
+
    ;If we have no window activated for typing, we don't want to do anything with the typed character
    IfEqual, g_Active_Id,
    {
@@ -197,47 +200,47 @@ ProcessKey(InputChar,EndKey)
          Return
       }
    }
-   
+
    IfEqual, g_Active_Id, %g_Helper_Id%
    {
       Return
    }
-   
+
    ;If we haven't typed anywhere, set this as the last window typed in
    IfEqual, g_LastInput_Id,
       g_LastInput_Id = %g_Active_Id%
-   
+
    IfNotEqual, prefs_DetectMouseClickMove, On
    {
       ifequal, g_OldCaretY,
          g_OldCaretY := HCaretY()
-         
+
       if ( g_OldCaretY != HCaretY() )
       {
          ;Don't do anything if we aren't in the original window and aren't starting a new word
          IfNotEqual, g_LastInput_Id, %g_Active_Id%
             Return
-            
+
          ; add the word if switching lines
          AddWordToList(g_Word,0)
          ClearAllVars(true)
          g_Word := InputChar
-         Return         
-      } 
+         Return
+      }
    }
 
    g_OldCaretY := HCaretY()
    g_OldCaretX := HCaretX()
-   
-   ;Backspace clears last letter 
+
+   ;Backspace clears last letter
    ifequal, EndKey, Endkey:BackSpace
    {
       ;Don't do anything if we aren't in the original window and aren't starting a new word
       IfNotEqual, g_LastInput_Id, %g_Active_Id%
          Return
-      
+
       StringLen, len, g_Word
-      IfEqual, len, 1   
+      IfEqual, len, 1
       {
          ClearAllVars(true)
       } else IfNotEqual, len, 0
@@ -256,7 +259,7 @@ ProcessKey(InputChar,EndKey)
          g_LastInput_Id := g_Active_Id
          Return
       }
-   
+
       if InputChar in %prefs_ForceNewWordCharacters%
       {
          AddWordToList(g_Word,0)
@@ -267,10 +270,10 @@ ProcessKey(InputChar,EndKey)
          g_Word .= InputChar
          AddWordToList(g_Word, 1)
          ClearAllVars(true)
-      } else { 
+      } else {
          g_Word .= InputChar
       }
-      
+
    } else IfNotEqual, g_LastInput_Id, %g_Active_Id%
    {
       ;Don't do anything if we aren't in the original window and aren't starting a new word
@@ -280,8 +283,8 @@ ProcessKey(InputChar,EndKey)
       ClearAllVars(true)
       Return
    }
-   
-   ;Wait till minimum letters 
+
+   ;Wait till minimum letters
    IF ( StrLen(g_Word) < prefs_Length )
    {
       CloseListBox()
@@ -310,12 +313,12 @@ RecomputeMatches()
    global prefs_NoBackSpace
    global prefs_ShowLearnedFirst
    global prefs_SuppressMatchingWord
-   
+
    SavePriorMatchPosition()
 
-   ;Match part-word with command 
-   g_MatchTotal = 0 
-   
+   ;Match part-word with command
+   g_MatchTotal = 0
+
    IfEqual, prefs_ArrowKeyMethod, Off
    {
       IfLess, prefs_ListBoxRows, 10
@@ -324,13 +327,13 @@ RecomputeMatches()
    } else {
       LimitTotalMatches = 200
    }
-   
+
    StringUpper, WordMatchOriginal, g_Word
-   
+
    WordMatch := StrUnmark(WordMatchOriginal)
-   
+
    StringUpper, WordMatch, WordMatch
-   
+
    ; if a user typed an accented character, we should exact match on that accented character
    if (WordMatch != WordMatchOriginal) {
       WordAccentQuery =
@@ -354,15 +357,15 @@ RecomputeMatches()
             ; to handle it manually, so we need 2 searches for each accented character the user typed.
             ;GLOB is used for consistency with the wordindexed search.
             WordAccentQuery .= " AND (word GLOB '" . PrefixChars . SubCharUpperEscaped . "*' OR word GLOB '" . PrefixChars . SubCharLowerEscaped . "*')"
-         }         
+         }
       }
    } else {
       WordAccentQuery =
    }
-   
+
    StringReplace, WordExactEscaped, g_Word, ', '', All
    StringReplace, WordMatchEscaped, WordMatch, ', '', All
-   
+
    IfEqual, prefs_SuppressMatchingWord, On
    {
       IfEqual, prefs_NoBackSpace, Off
@@ -372,21 +375,21 @@ RecomputeMatches()
                SuppressMatchingWordQuery := " AND wordindexed <> '" . WordMatchEscaped . "'"
             }
    }
-   
+
    WhereQuery := " WHERE wordindexed GLOB '" . WordMatchEscaped . "*' " . SuppressMatchingWordQuery . WordAccentQuery
-   
+
    NormalizeTable := g_WordListDB.Query("SELECT MIN(count) AS normalize FROM Words" . WhereQuery . "AND count IS NOT NULL LIMIT " . LimitTotalMatches . ";")
-   
+
    for each, row in NormalizeTable.Rows
    {
       Normalize := row[1]
    }
-      
+
    IfEqual, Normalize,
    {
       Normalize := 0
    }
-      
+
    WordLen := StrLen(g_Word)
    OrderByQuery := " ORDER BY CASE WHEN count IS NULL then "
    IfEqual, prefs_ShowLearnedFirst, On
@@ -395,31 +398,31 @@ RecomputeMatches()
    } else {
       OrderByQuery .= "ROWID else 'z'"
    }
-   
+
    OrderByQuery .= " end, CASE WHEN count IS NOT NULL then ( (count - " . Normalize . ") * ( 1 - ( '0.75' / (LENGTH(word) - " . WordLen . ")))) end DESC, Word"
-      
+
    Matches := g_WordListDB.Query("SELECT word, worddescription, wordreplacement FROM Words" . WhereQuery . OrderByQuery . " LIMIT " . LimitTotalMatches . ";")
-   
+
    g_SingleMatch := Object()
    g_SingleMatchDescription := Object()
    g_SingleMatchReplacement := Object()
-   
+
    for each, row in Matches.Rows
-   {      
+   {
       g_SingleMatch[++g_MatchTotal] := row[1]
       g_SingleMatchDescription[g_MatchTotal] := row[2]
       g_SingleMatchReplacement[g_MatchTotal] := row[3]
-      
+
       continue
    }
-   
-   ;If no match then clear Tip 
+
+   ;If no match then clear Tip
    IfEqual, g_MatchTotal, 0
    {
       ClearAllVars(false)
-      Return 
-   } 
-   
+      Return
+   }
+
    SetupMatchPosition()
    RebuildMatchList()
    ShowListBox()
@@ -427,14 +430,14 @@ RecomputeMatches()
 
 ;------------------------------------------------------------------------
 
-~LButton:: 
+~LButton::
 CheckForCaretMove("LButton","UpdatePosition")
 return
-   
+
 
 ;------------------------------------------------------------------------
 
-~RButton:: 
+~RButton::
 CheckForCaretMove("RButton","UpdatePosition")
 Return
 
@@ -448,11 +451,11 @@ CheckForCaretMove(MouseButtonClick, UpdatePosition = false)
    global g_OldCaretY
    global g_Word
    global prefs_DetectMouseClickMove
-   
+
    ;If we aren't using the DetectMouseClickMoveScheme, skip out
    IfNotEqual, prefs_DetectMouseClickMove, On
       Return
-   
+
    if (UpdatePosition)
    {
       ; Update last click position in case Caret is not detectable
@@ -460,30 +463,30 @@ CheckForCaretMove(MouseButtonClick, UpdatePosition = false)
       MouseGetPos, MouseX, MouseY, g_MouseWin_Id
       WinGetPos, ,TempY, , , ahk_id %g_MouseWin_Id%
    }
-   
+
    IfEqual, MouseButtonClick, LButton
    {
-      KeyWait, LButton, U    
+      KeyWait, LButton, U
    } else KeyWait, RButton, U
-   
+
    IfNotEqual, g_LastInput_Id, %g_MouseWin_Id%
    {
       Return
    }
-   
+
    SysGet, SM_CYCAPTION, 4
    SysGet, SM_CYSIZEFRAME, 33
-   
+
    TempY += SM_CYSIZEFRAME
    IF ( ( MouseY >= TempY ) && (MouseY < (TempY + SM_CYCAPTION) ) )
    {
       Return
    }
-   
+
    ; If we have a g_Word and an g_OldCaretX, check to see if the Caret moved
-   IfNotEqual, g_OldCaretX, 
+   IfNotEqual, g_OldCaretX,
    {
-      IfNotEqual, g_Word, 
+      IfNotEqual, g_Word,
       {
          if (( g_OldCaretY != HCaretY() ) || (g_OldCaretX != HCaretX() ))
          {
@@ -496,8 +499,8 @@ CheckForCaretMove(MouseButtonClick, UpdatePosition = false)
 
    Return
 }
-   
-   
+
+
 ;------------------------------------------------------------------------
 
 InitializeHotKeys()
@@ -506,8 +509,8 @@ InitializeHotKeys()
    global g_EnabledKeyboardHotKeys
    global prefs_ArrowKeyMethod
    global prefs_DisabledAutoCompleteKeys
-   global prefs_LearnMode  
-   
+   global prefs_LearnMode
+
    g_EnabledKeyboardHotKeys =
 
    ;Setup toggle-able hotkeys
@@ -526,9 +529,9 @@ InitializeHotKeys()
       ; We only want Ctrl-Shift-Delete enabled when the listbox is showing.
       g_EnabledKeyboardHotKeys .= "$^+Delete" . g_DelimiterChar
    }
-   
+
    HotKey, $^+c, On
-   
+
    IfEqual, prefs_ArrowKeyMethod, Off
    {
       Hotkey, $^Enter, Off
@@ -568,7 +571,7 @@ InitializeHotKeys()
 
    ; remove last ascii 2
    StringTrimRight, g_EnabledKeyboardHotKeys, g_EnabledKeyboardHotKeys, 1
-   
+
 }
 
 EnableKeyboardHotKeys()
@@ -592,23 +595,36 @@ DisableKeyboardHotKeys()
    }
    Return
 }
-   
+
 ;------------------------------------------------------------------------
 
-#MaxThreadsPerHotkey 1 
-    
-; changed to AHK numbers for 1 to 6
+#MaxThreadsPerHotkey 1
+
+; changed to AHK numbers for all
 1::
 2::
 3::
 4::
 5::
 6::
-7:: 
-8:: 
-9:: 
+7::
+8::
+9::
 0::
 CheckWord(A_ThisHotkey)
+Return
+
+; Detect when Numpad keys are pressed
+~Numpad1::
+~Numpad2::
+~Numpad3::
+~Numpad4::
+~Numpad5::
+~Numpad6::
+~Numpad7::
+~Numpad8::
+~Numpad9::
+~Numpad0::
 Return
 
 $^Enter::
@@ -628,7 +644,7 @@ $^+h::
 MaybeOpenOrCloseHelperWindowManual()
 Return
 
-$^+c:: 
+$^+c::
 AddSelectedWordToList()
 Return
 
@@ -638,7 +654,7 @@ Return
 
 ;------------------------------------------------------------------------
 
-; If hotkey was pressed, check wether there's a match going on and send it, otherwise send the number(s) typed 
+; If hotkey was pressed, check wether there's a match going on and send it, otherwise send the number(s) typed
 CheckWord(Key)
 {
    global g_ListBox_Id
@@ -649,81 +665,81 @@ CheckWord(Key)
    global g_Word
    global prefs_ListBoxRows
    global prefs_NumPresses
-   
+
    StringRight, Key, Key, 1 ;Grab just the number pushed, trim off the "$"
-   
+
    IfEqual, Key, 0
    {
       WordIndex := g_MatchStart + 9
    } else {
             WordIndex := g_MatchStart - 1 + Key
-         }  
-   
+         }
+
    IfEqual, g_NumKeyMethod, Off
    {
       SendCompatible(Key,0)
       ProcessKey(Key,"")
       Return
    }
-   
+
    IfEqual, prefs_NumPresses, 2
       SuspendOn()
 
-   ; If active window has different window ID from before the input, blank word 
-   ; (well, assign the number pressed to the word) 
+   ; If active window has different window ID from before the input, blank word
+   ; (well, assign the number pressed to the word)
    if !(ReturnWinActive())
-   { 
+   {
       SendCompatible(Key,0)
       ProcessKey(Key,"")
       IfEqual, prefs_NumPresses, 2
          SuspendOff()
-      Return 
-   } 
-   
+      Return
+   }
+
    if ReturnLineWrong() ;Make sure we are still on the same line
-   { 
+   {
       SendCompatible(Key,0)
-      ProcessKey(Key,"") 
+      ProcessKey(Key,"")
       IfEqual, prefs_NumPresses, 2
          SuspendOff()
-      Return 
-   } 
+      Return
+   }
 
-   IfNotEqual, g_Match, 
+   IfNotEqual, g_Match,
    {
       ifequal, g_ListBox_Id,        ; only continue if match is not empty and list is showing
-      { 
+      {
          SendCompatible(Key,0)
          ProcessKey(Key,"")
          IfEqual, prefs_NumPresses, 2
             SuspendOff()
-         Return 
+         Return
       }
    }
 
-   ifequal, g_Word,        ; only continue if g_word is not empty 
-   { 
+   ifequal, g_Word,        ; only continue if g_word is not empty
+   {
       SendCompatible(Key,0)
       ProcessKey(Key,"")
       IfEqual, prefs_NumPresses, 2
          SuspendOff()
-      Return 
+      Return
    }
-      
-   if ( ( (WordIndex + 1 - MatchStart) > prefs_ListBoxRows) || ( g_Match = "" ) || (g_SingleMatch[WordIndex] = "") )   ; only continue g_SingleMatch is not empty 
-   { 
+
+   if ( ( (WordIndex + 1 - MatchStart) > prefs_ListBoxRows) || ( g_Match = "" ) || (g_SingleMatch[WordIndex] = "") )   ; only continue g_SingleMatch is not empty
+   {
       SendCompatible(Key,0)
       ProcessKey(Key,"")
       IfEqual, prefs_NumPresses, 2
          SuspendOff()
-      Return 
+      Return
    }
 
    IfEqual, prefs_NumPresses, 2
    {
       ; Removed 'I'
 	  Input, KeyAgain, L1 T0.5, 1234567890
-      
+
       ; If there is a timeout, abort replacement, send key and return
       IfEqual, ErrorLevel, Timeout
       {
@@ -742,8 +758,8 @@ CheckWord(Key)
          SuspendOff()
          Return
       }
-   
-      ; If the 2nd key is NOT the same 1st trigger key, abort replacement and send keys   
+
+      ; If the 2nd key is NOT the same 1st trigger key, abort replacement and send keys
       IfNotInString, ErrorLevel, %Key%
       {
          StringTrimLeft, KeyAgain, ErrorLevel, 7
@@ -754,31 +770,31 @@ CheckWord(Key)
          Return
       }
 
-      ; If active window has different window ID from before the input, blank word 
-      ; (well, assign the number pressed to the word) 
+      ; If active window has different window ID from before the input, blank word
+      ; (well, assign the number pressed to the word)
       if !(ReturnWinActive())
-      { 
+      {
          SendCompatible(Key . KeyAgain,0)
          ProcessKey(Key,"")
          ProcessKey(KeyAgain,"")
          SuspendOff()
-         Return 
-      } 
-   
+         Return
+      }
+
       if ReturnLineWrong() ;Make sure we are still on the same line
-      { 
+      {
          SendCompatible(Key . KeyAgain,0)
          ProcessKey(Key,"")
          ProcessKey(KeyAgain,"")
          SuspendOff()
-         Return 
-      } 
+         Return
+      }
    }
 
    SendWord(WordIndex)
    IfEqual, prefs_NumPresses, 2
       SuspendOff()
-   Return 
+   Return
 }
 
 ;------------------------------------------------------------------------
@@ -797,7 +813,7 @@ EvaluateUpDown(Key)
    global prefs_ArrowKeyMethod
    global prefs_DisabledAutoCompleteKeys
    global prefs_ListBoxRows
-   
+
    IfEqual, prefs_ArrowKeyMethod, Off
    {
       if (Key != "$LButton")
@@ -806,7 +822,7 @@ EvaluateUpDown(Key)
          Return
       }
    }
-   
+
    IfEqual, g_Match,
    {
       SendKey(Key)
@@ -831,15 +847,15 @@ EvaluateUpDown(Key)
       SendKey(Key)
       ClearAllVars(true)
       Return
-   }   
-   
+   }
+
    IfEqual, g_Word, ; only continue if word is not empty
    {
       SendKey(Key)
       ClearAllVars(false)
       Return
    }
-   
+
    if ( ( Key = "$^Enter" ) || ( Key = "$Tab" ) || ( Key = "$^Space" ) || ( Key = "$Right") || ( Key = "$Enter") || ( Key = "$LButton") || ( Key = "$NumpadEnter") )
    {
       IfEqual, Key, $^Enter
@@ -849,8 +865,8 @@ EvaluateUpDown(Key)
       {
          KeyTest = T
       } else IfEqual, Key, $^Space
-      {   
-         KeyTest = S 
+      {
+         KeyTest = S
       } else IfEqual, Key, $Right
       {
          KeyTest = R
@@ -864,15 +880,15 @@ EvaluateUpDown(Key)
       {
          KeyTest = M
       }
-      
+
       if (KeyTest == "L") {
-         ;when hitting LButton, we've already handled this condition         
+         ;when hitting LButton, we've already handled this condition
       } else if prefs_DisabledAutoCompleteKeys contains %KeyTest%
       {
          SendKey(Key)
-         Return     
+         Return
       }
-      
+
       if (g_SingleMatch[g_MatchPos] = "") ;only continue if g_SingleMatch is not empty
       {
          SendKey(Key)
@@ -881,18 +897,18 @@ EvaluateUpDown(Key)
          ShowListBox()
          Return
       }
-      
+
       SendWord(g_MatchPos)
       Return
-      
+
    }
 
    PreviousMatchStart := g_OriginalMatchStart
-   
+
    IfEqual, Key, $Up
-   {   
+   {
       g_MatchPos--
-   
+
       IfLess, g_MatchPos, 1
       {
          g_MatchStart := g_MatchTotal - (prefs_ListBoxRows - 1)
@@ -902,7 +918,7 @@ EvaluateUpDown(Key)
       } else IfLess, g_MatchPos, %g_MatchStart%
       {
          g_MatchStart --
-      }      
+      }
    } else IfEqual, Key, $Down
    {
       g_MatchPos++
@@ -913,7 +929,7 @@ EvaluateUpDown(Key)
       } Else If ( g_MatchPos > ( g_MatchStart + (prefs_ListBoxRows - 1) ) )
       {
          g_MatchStart ++
-      }            
+      }
    } else IfEqual, Key, $PgUp
    {
       IfEqual, g_MatchPos, 1
@@ -921,15 +937,15 @@ EvaluateUpDown(Key)
          g_MatchPos := g_MatchTotal - (prefs_ListBoxRows - 1)
          g_MatchStart := g_MatchTotal - (prefs_ListBoxRows - 1)
       } Else {
-         g_MatchPos-=prefs_ListBoxRows   
+         g_MatchPos-=prefs_ListBoxRows
          g_MatchStart-=prefs_ListBoxRows
       }
-      
+
       IfLess, g_MatchPos, 1
          g_MatchPos = 1
       IfLess, g_MatchStart, 1
          g_MatchStart = 1
-      
+
    } else IfEqual, Key, $PgDn
    {
       IfEqual, g_MatchPos, %g_MatchTotal%
@@ -940,18 +956,18 @@ EvaluateUpDown(Key)
          g_MatchPos+=prefs_ListBoxRows
          g_MatchStart+=prefs_ListBoxRows
       }
-   
+
       IfGreater, g_MatchPos, %g_MatchTotal%
          g_MatchPos := g_MatchTotal
-   
+
       If ( g_MatchStart > ( g_MatchTotal - (prefs_ListBoxRows - 1) ) )
       {
-         g_MatchStart := g_MatchTotal - (prefs_ListBoxRows - 1)   
+         g_MatchStart := g_MatchTotal - (prefs_ListBoxRows - 1)
          IfLess, g_MatchStart, 1
             g_MatchStart = 1
       }
    }
-   
+
    IfEqual, g_MatchStart, %PreviousMatchStart%
    {
       Rows := GetRows()
@@ -975,20 +991,20 @@ ReturnLineWrong()
    ; Return false if we are using DetectMouseClickMove
    IfEqual, prefs_DetectMouseClickMove, On
       Return
-      
+
    Return, ( g_OldCaretY != HCaretY() )
 }
 
 ;------------------------------------------------------------------------
 
 AddSelectedWordToList()
-{      
+{
    ClipboardSave := ClipboardAll
    Clipboard =
    Sleep, 100
    SendCompatible("^c",0)
    ClipWait, 0
-   IfNotEqual, Clipboard, 
+   IfNotEqual, Clipboard,
    {
       AddWordToList(Clipboard,1,"ForceLearn")
    }
@@ -999,15 +1015,15 @@ DeleteSelectedWordFromList()
 {
    global g_MatchPos
    global g_SingleMatch
-   
+
    if !(g_SingleMatch[g_MatchPos] = "") ;only continue if g_SingleMatch is not empty
    {
-      
+
       DeleteWordFromList(g_SingleMatch[g_MatchPos])
       RecomputeMatches()
       Return
    }
-   
+
 }
 
 ;------------------------------------------------------------------------
@@ -1025,9 +1041,9 @@ EvaluateScriptPathAndTitle()
       {
          IF A_IsCompiled
          {
-         
+
             ScriptPath64 := A_ScriptDir . "\" . ScriptNoExtension . "64." . ScriptExtension
-         
+
             IfExist, %ScriptPath64%
             {
                Run, %ScriptPath64%, %A_WorkingDir%
@@ -1048,7 +1064,7 @@ EvaluateScriptPathAndTitle()
    {
       g_ScriptTitle = TypingAid
    }
-   
+
    return
 }
 
@@ -1090,7 +1106,7 @@ SuspendOff()
    {
       Menu, tray, Icon, %A_ScriptDir%\%g_ScriptTitle%-Active.ico, ,1
    }
-}   
+}
 
 ;------------------------------------------------------------------------
 
@@ -1114,7 +1130,7 @@ BuildTrayMenu()
 
 ;------------------------------------------------------------------------
 
-; This is to blank all vars related to matches, ListBox and (optionally) word 
+; This is to blank all vars related to matches, ListBox and (optionally) word
 ClearAllVars(ClearWord)
 {
    global
@@ -1128,13 +1144,13 @@ ClearAllVars(ClearWord)
       g_ListBoxFlipped=
       g_ListBoxMaxWordHeight=
    }
-   
+
    g_SingleMatch =
    g_SingleMatchDescription =
    g_SingleMatchReplacement =
-   g_Match= 
+   g_Match=
    g_MatchPos=
-   g_MatchStart= 
+   g_MatchStart=
    g_OriginalMatchStart=
    Return
 }
@@ -1162,17 +1178,17 @@ MaybeFixFileEncoding(File,Encoding)
 {
    IfGreaterOrEqual, A_AhkVersion, 1.0.90.0
    {
-      
+
       IfExist, %File%
-      {    
+      {
          IfNotEqual, A_IsUnicode, 1
          {
             Encoding =
          }
-         
-         
+
+
          EncodingCheck := FileOpen(File,"r")
-         
+
          If EncodingCheck
          {
             If Encoding
@@ -1184,7 +1200,7 @@ MaybeFixFileEncoding(File,Encoding)
                IF (SubStr(EncodingCheck.Encoding, 1, 3) = "UTF")
                   WriteFile = 1
             }
-         
+
             IF WriteFile
             {
                Contents := EncodingCheck.Read()
@@ -1193,7 +1209,7 @@ MaybeFixFileEncoding(File,Encoding)
                FileCopy, %File%, %File%.preconv.bak
                FileDelete, %File%
                FileAppend, %Contents%, %File%, %Encoding%
-               
+
                Contents =
             } else
             {
@@ -1219,12 +1235,12 @@ MaybeCoInitializeEx()
    global g_NULL
    global g_ScrollEventHook
    global g_WinChangedEventHook
-   
+
    if (!g_WinChangedEventHook && !g_ScrollEventHook)
    {
       DllCall("CoInitializeEx", "Ptr", g_NULL, "Uint", g_NULL)
    }
-   
+
 }
 
 
@@ -1263,7 +1279,7 @@ Return
 ExitScript:
 ExitApp
 Return
-   
+
 SaveScript:
 ; Close the ListBox if it's open
 CloseListBox()
